@@ -1,0 +1,33 @@
+#!/bin/bash
+#Get an average sending rate of a certain eth card
+
+if [ -z $1 ];then
+	echo "usage:  $0 [TIME INTERVAL]"
+	exit 1
+fi
+
+ETH_NAME=ens32
+TIME_INTERVAL=$1
+
+RX0=`cat /sys/class/net/${ETH_NAME}/statistics/rx_bytes`
+if [ ${#RX0} -gt 9 ];then
+	StartPoint=`expr ${#RX0} - 8`
+	RX0=`expr substr $RX0 $StartPoint 9`
+fi
+
+sleep $TIME_INTERVAL
+RX1=`cat /sys/class/net/${ETH_NAME}/statistics/rx_bytes`
+if [ ${#RX1} -gt 9 ];then
+	StartPoint=`expr ${#RX1} - 8`
+	RX1=`expr substr $RX1 $StartPoint 9`
+fi
+
+RATE1=`expr ${RX1} - ${RX0}`
+if [ $RATE1 -lt 0 ];then
+	RATE1=`expr ${RATE1} + 1000000000`
+fi
+
+RX_RATE=`expr ${RATE1}`
+RX_RATE=`expr ${RX_RATE} / $TIME_INTERVAL`
+echo "$RX_RATE bytes/s"
+
